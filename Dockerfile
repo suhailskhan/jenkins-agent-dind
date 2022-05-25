@@ -23,7 +23,7 @@ ARG NPM_GLOBAL_PATH="${HOME}/.npm-global"
 ENV AGENT_WORKDIR="${HOME}/agent" \
     CI=true \
     PATH="${NPM_GLOBAL_PATH}/bin:${HOME}/.local/bin:${PATH}" \
-    JAVA_HOME="/usr/lib/jvm/temurin-11-jdk-amd64" \
+    JAVA_HOME="/usr/lib/jvm/temurin-11-jdk-arm64" \
     # locale and encoding
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en" \
@@ -80,15 +80,15 @@ RUN \
     ${CURL} https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -; \
     sudo add-apt-repository --no-update -y "deb https://apt.kubernetes.io/ kubernetes-xenial main"; \
     # skopeo, podman, buildah \
-    version_id="$(source /etc/os-release && echo -n "$VERSION_ID")"; \
-    ${CURL} https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}/Release.key | sudo apt-key add -; \
-    sudo add-apt-repository --no-update -y "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}/ /"; \
+   #  version_id="$(source /etc/os-release && echo -n "$VERSION_ID")"; \
+   #  ${CURL} https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}/Release.key | sudo apt-key add -; \
+   #  sudo add-apt-repository --no-update -y "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}/ /"; \
     # yarn \
     ${CURL} https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -; \
     sudo add-apt-repository --no-update -y "deb https://dl.yarnpkg.com/debian/ stable main"; \
     # jfrog \
-    ${CURL} https://releases.jfrog.io/artifactory/api/gpg/key/public | sudo apt-key add -; \
-    sudo add-apt-repository --no-update -y "deb https://releases.jfrog.io/artifactory/jfrog-debs xenial contrib"; \
+    # ${CURL} https://releases.jfrog.io/artifactory/api/gpg/key/public | sudo apt-key add -; \
+    # sudo add-apt-repository --no-update -y "deb https://releases.jfrog.io/artifactory/jfrog-debs xenial contrib"; \
     # git \
     sudo add-apt-repository --no-update -y ppa:git-core/ppa; \
     # yq \
@@ -110,14 +110,14 @@ RUN \
         python3-pip \
         temurin-11-jdk \
         nodejs \
-        yarn \
-        kubectl \
-        skopeo \
-        jfrog-cli \
-        shellcheck \
-        maven \
-        ant \
-        ant-contrib \
+      #   yarn \
+      #   kubectl \
+      #   skopeo \
+      #   jfrog-cli \
+      #   shellcheck \
+      #   maven \
+      #   ant \
+      #   ant-contrib \
         zip \
         unzip \
         time \
@@ -138,7 +138,7 @@ RUN \
     sudo usermod -aG docker "${USER}"; \
     # setup buildx \
     version=$(${CURL} https://api.github.com/repos/docker/buildx/releases/latest | jq .tag_name -er); \
-    ${CURL} --create-dirs -o "$HOME/.docker/cli-plugins/docker-buildx" "https://github.com/docker/buildx/releases/download/${version}/buildx-${version}.$(uname -s)-amd64"; \
+    ${CURL} --create-dirs -o "$HOME/.docker/cli-plugins/docker-buildx" "https://github.com/docker/buildx/releases/download/${version}/buildx-${version}.$(uname -s)-arm64"; \
     chmod a+x "$HOME/.docker/cli-plugins/docker-buildx"; \
     docker buildx install; \
     # install docker compose \
@@ -147,7 +147,7 @@ RUN \
     chmod a+x "$HOME/.docker/cli-plugins/docker-compose"; \
     ## setup docker-switch (docker-compose v1 compatibility) \
     version=$(${CURL} https://api.github.com/repos/docker/compose-switch/releases/latest | jq .tag_name -er); \
-    sudo ${CURL} --create-dirs -o "/usr/local/bin/docker-compose" "https://github.com/docker/compose-switch/releases/download/${version}/docker-compose-$(uname -s)-amd64"; \
+    sudo ${CURL} --create-dirs -o "/usr/local/bin/docker-compose" "https://github.com/docker/compose-switch/releases/download/${version}/docker-compose-$(uname -s)-arm64"; \
     sudo chmod +x /usr/local/bin/docker-compose; \
     ## dind \
     # set up subuid/subgid so that "--userns-remap=default" works out-of-the-box \
@@ -178,33 +178,33 @@ RUN \
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1; \
     sudo update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1; \
     # install pip packages \
-    pip install --user --no-cache-dir ansible; \
+   #  pip install --user --no-cache-dir ansible; \
     ## npm \
     # upgrade npm \
     sudo npm install -g npm@latest; \
     # allow npm --global to run as non-root \
     mkdir "${NPM_GLOBAL_PATH}"; \
     npm config set prefix "${NPM_GLOBAL_PATH}"; \
-    # install npm packages \
-    npm install --global \
-        semver \
-        bats; \
+   #  # install npm packages \
+   #  npm install --global \
+   #      semver \
+   #      bats; \
     # clean npm cache \
     sudo npm cache clean --force; \
     npm cache clean --force; \
     ## miscellaneous \
-    # install kind \
-    version=$(${CURL} https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq .tag_name -er); \
-    sudo ${CURL} -o /usr/local/bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-$(uname)-amd64"; \
-    sudo chmod +x /usr/local/bin/kind; \
-    # install hadolint \
-    version=$(${CURL} https://api.github.com/repos/hadolint/hadolint/releases/latest | jq .tag_name -er); \
-    sudo ${CURL} -o /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/download/${version}/hadolint-Linux-x86_64"; \
-    sudo chmod +x /usr/local/bin/hadolint; \
-    # install helm 3 \
-    ${CURL} https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo -E bash -; \
+   #  # install kind \
+   #  version=$(${CURL} https://api.github.com/repos/kubernetes-sigs/kind/releases/latest | jq .tag_name -er); \
+   #  sudo ${CURL} -o /usr/local/bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/${version}/kind-$(uname)-arm64"; \
+   #  sudo chmod +x /usr/local/bin/kind; \
+   #  # install hadolint \
+   #  version=$(${CURL} https://api.github.com/repos/hadolint/hadolint/releases/latest | jq .tag_name -er); \
+   #  sudo ${CURL} -o /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/download/${version}/hadolint-Linux-arm64"; \
+   #  sudo chmod +x /usr/local/bin/hadolint; \
+   #  # install helm 3 \
+   #  ${CURL} https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | sudo -E bash -; \
     # install s6-overlay \
-    ${CURL} -o /tmp/s6-overlay-installer https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer; \
+    ${CURL} -o /tmp/s6-overlay-installer https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-aarch64-installer; \
     chmod +x /tmp/s6-overlay-installer; \
     sudo /tmp/s6-overlay-installer /; \
     rm -f /tmp/s6-overlay-installer
